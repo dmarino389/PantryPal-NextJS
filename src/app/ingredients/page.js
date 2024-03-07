@@ -3,14 +3,13 @@ import React, { useEffect, useState } from 'react'
 import IngredientCard from '../components/ingredientcard'
 import RecipeCard from '../components/recipecard'
 
-export default function page() {
+export default function Page() {
   const [data, setData] = useState([])
   const [ingredient, setIngredient] = useState('')
   const [ingredientsList, setIngredientsList] = useState([])
   
   
   const ingredientsListToString = (ingredientsList) => {
-    console.log(ingredientsList.join(', '))
     return ingredientsList.join(', ');
   }
 
@@ -24,6 +23,7 @@ export default function page() {
       .then(response => response.json())
       .then(data => {
         const recipeArray = data.results.map(result => ({
+          id: result.id,
           title: result.title,
           link: result.sourceUrl,
           image: result.image,
@@ -65,7 +65,7 @@ export default function page() {
               key={recipe.title}
               className='w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 p-2 sm:p-4 hover:shadow-lg transition duration-300'
             >
-              <RecipeCard name={recipe.title}  image={recipe.image}  link={recipe.link}  time={recipe.time}  missingIngredients={recipe.missingIngredients} />
+              <RecipeCard name={recipe.title}  image={recipe.image}  link={recipe.link}  time={recipe.time}  missingIngredients={recipe.missingIngredients} id={recipe.id} />
               </div>
             )}
             </div>

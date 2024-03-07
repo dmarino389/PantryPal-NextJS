@@ -1,7 +1,15 @@
 import Image from 'next/image'
 import React from 'react'
+import { useRouter } from 'next/navigation'
 
-export default function RecipeCard({name , image , link , time , missingIngredients }) {
+export default function RecipeCard({name , image , link , time , missingIngredients, id }) {
+
+    const router = useRouter()
+
+    const toSlug = () => {
+        console.log(id)
+        router.push(`/${name}/${id}`)
+      }
 
     const handleMissingIngredients = () => {
         if(missingIngredients == 0){
@@ -11,19 +19,33 @@ export default function RecipeCard({name , image , link , time , missingIngredie
         }
     }
     const handleTime = () => {
-        if(time <= 10){
-            return 'less than 10 mins'
-        }else{
-            return `${time} minutes`
+        const numTime = Number(time);
+    
+        if (isNaN(numTime)) {
+            console.error('Time is not a valid number:', time);
+            return 'Invalid time';
+        }
+    
+        if (numTime < 10) {
+            return '< 10 mins';
+        } else if (numTime >= 10 && numTime < 60) {
+            return `${numTime} minutes`;
+        } else {
+            const hours = Math.floor(numTime / 60);
+            const minutes = numTime % 60;
+            
+            return `${hours} hour${hours > 1 ? 's' : ''}${minutes > 0 ? ` and ${minutes} minute${minutes !== 1 ? 's' : ''}` : ''}`;
         }
     }
-
   return (
-    <div className=' h-[800px] w-[800px] grid grid-rows-2'>
-        <Image src={image} width={100} height={100} className='flex row-span-1 h-1/2'/>
+    <div onClick={toSlug} className=' h-[800px] w-[800px] grid grid-rows-2'>
+        <div className='row-span-1 h-full w-full relative'>
+           
+            <Image style={{cursor: 'pointer'}} alt={name} src={image} layout='fill' objectFit='cover'/>
+        </div>
         <div className='flex row-span-1 h-full flex-col'>
-            <h1>{name}</h1>
-            <a href={link}>{link}</a>
+            <h1 className=''>{name}</h1>
+            <a href={link}>Recipe.com</a>
             <div>{handleMissingIngredients()}</div>
             <div>{handleTime()}</div>
             
