@@ -9,6 +9,7 @@ export default function Home() {
     
     <div>
       <a href="/ingredients">ingredients<br/></a>
+      <a href="/searchrecipe">search recipe<br/></a>
       <a href="/login">login<br/></a>
       <a href="/register">register<br/></a>
       
