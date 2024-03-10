@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import './IngredientCard.css';
 
 export default function IngredientCard({ ingredient, updateIngredientsList }) {
+    const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY
     const [data, setData] = useState([]);
     const [userIngredients, setUserIngredients] = useState([]);
 
@@ -23,7 +25,6 @@ export default function IngredientCard({ ingredient, updateIngredientsList }) {
         .then(data => {
             const ingredientsArray = data.results.map(result => result.name);
             setData(ingredientsArray);            
-            
         })
         .catch(error => {
             console.error('Error fetching data: ', error);
@@ -31,8 +32,10 @@ export default function IngredientCard({ ingredient, updateIngredientsList }) {
     }, [ingredient]); 
 
     return (
-        <div>{data.map((name) =>
-            <p key={name} style={{ cursor: 'pointer' }} onClick={() => handleUserIngredientUpdate(name)}>{name}</p>
-        )}</div>
+        <div className="ingredient-card">
+          {data.map((name) =>
+            <p key={name} className="ingredient-name" onClick={() => handleUserIngredientUpdate(name)}>{name}</p>
+          )}
+        </div>
     );
 }

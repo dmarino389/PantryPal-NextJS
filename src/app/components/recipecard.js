@@ -41,7 +41,7 @@ export default function RecipeCard({name , image , link , time , missingIngredie
     <div onClick={toSlug} className=' h-[800px] w-[800px] grid grid-rows-2'>
         <div className='row-span-1 h-full w-full relative'>
            
-            <Image style={{cursor: 'pointer'}} alt={name} src={image} layout='fill' objectFit='cover'/>
+            <Image priority fill style={{cursor: 'pointer'}} alt={name} src={image} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"  />
         </div>
         <div className='flex row-span-1 h-full flex-col'>
             <h1 className=''>{name}</h1>

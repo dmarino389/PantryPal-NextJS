@@ -1,10 +1,11 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation'; // Corrected import
+import { useParams } from 'next/navigation'; 
 import Image from 'next/image';
 import StepsCard from '../../components/stepscard';
 
 export default function Page() {
+    const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY
     const { id } = useParams()
     const [recipeData, setRecipeData] = useState({
         ingredients: [],
@@ -20,7 +21,7 @@ export default function Page() {
             fetch(`https://api.spoonacular.com/recipes/${id}/information`, {
                 method: 'GET',
                 headers: {
-                    'x-api-key': '30e837b638ae4d4ea465cd42c060e2ef' 
+                    'x-api-key': apiKey 
                 }
             })
             .then(response => response.json())
