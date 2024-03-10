@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import RecipeCard from '../components/recipecard'
 
 
-export default function page() {
+export default function Page() {
     const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY
     const [recipe, setRecipe] = useState([])
     const [recipeArray, setRecipeArray]= useState([])
