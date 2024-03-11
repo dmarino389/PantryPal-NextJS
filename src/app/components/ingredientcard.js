@@ -18,7 +18,7 @@ export default function IngredientCard({ ingredient, updateIngredientsList }) {
         fetch(`https://api.spoonacular.com/food/ingredients/search?query=${ingredient}`, {
             method: 'GET',
             headers: {
-                'x-api-key': '30e837b638ae4d4ea465cd42c060e2ef' 
+                'x-api-key': apiKey 
             }
         })
         .then(response => response.json())
