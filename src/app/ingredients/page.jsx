@@ -5,18 +5,18 @@ import RecipeCard from '../components/recipecard';
 
 export default function Page() {
   const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY;
-  const [originalData, setOriginalData] = useState([]);
+  
   const [data, setData] = useState([]);
   const [ingredient, setIngredient] = useState('');
   const [ingredientsList, setIngredientsList] = useState([]);
-  const [selectedTime, setSelectedTime] = useState('');
+  const [selectedTime, setSelectedTime] = useState(200);
 
   const ingredientsListToString = (ingredientsList) => {
     return ingredientsList.join(', ');
   };
 
   useEffect(() => {
-    fetch(`https://api.spoonacular.com/recipes/complexSearch?includeIngredients=${ingredientsListToString(ingredientsList)}&addRecipeInformation=true&number=50&fillIngredients=true`, {
+    fetch(`https://api.spoonacular.com/recipes/complexSearch?query=${ingredientsListToString(ingredientsList)}&addRecipeInformation=true&number=50&fillIngredients=true&maxReadyTime=${selectedTime}`, {
       method: 'GET',
       headers: {
         'x-api-key': apiKey
@@ -32,40 +32,22 @@ export default function Page() {
         time: result.readyInMinutes,
         missingIngredients: result.missedIngredientCount
       }));
-      setOriginalData(recipeArray);
+      
       setData(recipeArray);
     })
     .catch(error => {
       console.error('Error fetching data: ', error);
     });
 
-  }, [ingredientsList, apiKey]);
-
-  useEffect(() => {
-    const filterByTime = (recipes) => {
-      if (!selectedTime) return recipes; // No filter selected, return all recipes
-      return recipes.filter(recipe => {
-        const time = parseInt(recipe.time);
-        switch (selectedTime) {
-          case '<10':
-            return time < 10;
-          case '<30':
-            return time >= 10 && time < 30;
-          case '<60':
-            return time >= 30 && time < 60;
-          default:
-            return true;
-        }
-      
-      });
-
-    };
-    setData(filterByTime(originalData))
-
-  }, [ingredientsList, selectedTime, originalData]); 
+  }, [ingredientsList, apiKey, selectedTime]);
 
   
-    ;
+    
+
+   
+
+  
+    
  
 
   const handleIngredientsListUpdate = (newList) => {
@@ -100,15 +82,15 @@ export default function Page() {
         </div>
         {/* Time Filter Buttons */}
         <div className="time-filters mx-auto max-w-3xl p-5 flex justify-around mb-4">
-          {['<10', '<30', '<60'].map((time) => (
+          {[9, 29, 59].map((time) => (
             <button
               key={time}
               className={`py-2 px-4 rounded-lg ${selectedTime === time ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
               onClick={() => handleTimeFilter(time)}
             >
-              {time === '<10' && '< 10 Minutes'}
-              {time === '<30' && '< 30 Minutes'}
-              {time === '<60' && '< 1 hour'}
+              {time === 9 && '< 10 Minutes'}
+              {time === 29 && '< 30 Minutes'}
+              {time === 59 && '< 1 hour'}
             </button>
           ))}
         </div>
