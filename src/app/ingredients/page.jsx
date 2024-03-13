@@ -56,14 +56,17 @@ export default function Page() {
           default:
             return true;
         }
+      
       });
+
     };
+    setData(filterByTime(originalData))
 
-  }, [ingredientsList, apiKey]); 
+  }, [ingredientsList, selectedTime, originalData]); 
 
-
-    setData(filterByTime(originalData));
-  }, [selectedTime, originalData]);
+  
+    ;
+ 
 
   const handleIngredientsListUpdate = (newList) => {
     setIngredientsList(newList);
@@ -74,7 +77,7 @@ export default function Page() {
   };
 
   return (
-    <div className='h-screen w-full bg-gray-100'>
+    <div className='h-screen w-full'>
       <h1 className="text-4xl font-bold mb-4 text-center pt-10">Suggested Recipes</h1>
       <div className="search-container mx-auto max-w-3xl p-5">
         <div className="search-box flex items-center border-2 rounded-lg border-gray-500 mb-8 bg-white">
@@ -117,7 +120,7 @@ export default function Page() {
         {data.map((recipe) => (
           <div
             key={recipe.id}
-            className='w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 p-2 sm:p-4 hover:shadow-lg transition duration-300 rounded-md'
+            className='w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 p-2 sm:p-4'
           >
             <RecipeCard
               name={recipe.title}

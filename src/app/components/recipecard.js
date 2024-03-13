@@ -38,7 +38,7 @@ export default function RecipeCard({name , image , link , time , missingIngredie
         }
     }
     return (
-        <div onClick={toSlug} className='cursor-pointer bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out mx-auto my-4 w-full sm:max-w-sm'>
+        <div onClick={toSlug} className='cursor-pointer overflow-hidden shadow-md mx-auto my-4 w-full sm:max-w-sm'>
             <div className='relative w-full' style={{ paddingTop: '0' }}> {/* Maintain aspect ratio for images */}
                 <Image 
                   priority 
