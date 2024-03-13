@@ -5,8 +5,9 @@ import RecipeCard from '../components/recipecard';
 
 export default function Page() {
   const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY;
-  
-  const [data, setData] = useState([]);
+
+  const [recipesDetails, setRecipesDetails] = useState([]); // Stores ID and missedIngredientsCount
+  const [recipeArray, setRecipeArray] = useState([]);
   const [ingredient, setIngredient] = useState('');
   const [ingredientsList, setIngredientsList] = useState([]);
   const [selectedTime, setSelectedTime] = useState(200);
@@ -16,47 +17,58 @@ export default function Page() {
   };
 
   useEffect(() => {
-    fetch(`https://api.spoonacular.com/recipes/complexSearch?query=${ingredientsListToString(ingredientsList)}&addRecipeInformation=true&number=50&fillIngredients=true&maxReadyTime=${selectedTime}`, {
-      method: 'GET',
-      headers: {
-        'x-api-key': apiKey
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      const recipeArray = data.results.map(result => ({
-        id: result.id,
-        title: result.title,
-        link: result.sourceUrl,
-        image: result.image,
-        time: result.readyInMinutes,
-        missingIngredients: result.missedIngredientCount
-      }));
-      
-      setData(recipeArray);
-    })
-    .catch(error => {
-      console.error('Error fetching data: ', error);
-    });
+    if (ingredientsList.length > 0) {
+      fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientsListToString(ingredientsList)}&apiKey=${apiKey}`)
+      .then(response => response.json())
+      .then(data => {
+        const tempRecipesDetails = data.map(item => ({
+          id: item.id,
+          missedIngredientsCount: item.missedIngredientCount
+        }));
+        setRecipesDetails(tempRecipesDetails);
+      })
+      .catch(error => {
+        console.error('Error fetching data: ', error);
+      });
+    }
+  }, [ingredientsList, apiKey]);
 
-  }, [ingredientsList, apiKey, selectedTime]);
-
-  
-    
-
-   
-
-  
-    
- 
+  useEffect(() => {
+    if (recipesDetails.length > 0) {
+      const ids = recipesDetails.map(detail => detail.id).join(',');
+      fetch(`https://api.spoonacular.com/recipes/informationBulk?ids=${ids}&apiKey=${apiKey}`)
+      .then(response => response.json())
+      .then(data => {
+        const tempRecipeArray = data.map(item => {
+          const details = recipesDetails.find(detail => detail.id === item.id) || {};
+          return {
+            id: item.id,
+            title: item.title,
+            link: item.sourceUrl,
+            image: item.image,
+            time: item.readyInMinutes,
+            missingIngredients: details.missedIngredientsCount
+          };
+        });
+        setRecipeArray(tempRecipeArray);
+      })
+      .catch(error => {
+        console.error('Error fetching data: ', error);
+      });
+    }
+  }, [recipesDetails, apiKey]);
 
   const handleIngredientsListUpdate = (newList) => {
     setIngredientsList(newList);
   };
 
   const handleTimeFilter = (time) => {
-    setSelectedTime(prevTime => prevTime === time ? '' : time);
+    setSelectedTime(time);
   };
+
+  const filteredRecipes = selectedTime ? recipeArray.filter(recipe => recipe.time <= selectedTime) : recipeArray;
+
+
 
   return (
     <div className='h-screen w-full'>
@@ -86,7 +98,7 @@ export default function Page() {
             <button
               key={time}
               className={`py-2 px-4 rounded-lg ${selectedTime === time ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-              onClick={() => handleTimeFilter(time)}
+              // onClick={() => handleTimeFilter(time)}
             >
               {time === 9 && '< 10 Minutes'}
               {time === 29 && '< 30 Minutes'}
@@ -99,7 +111,7 @@ export default function Page() {
       </div>
       {/* RecipeCard Grid */}
       <div className='flex flex-wrap m-4 sm:m-8 lg:m-12 xl:m-16'>
-        {data.map((recipe) => (
+        {recipeArray.map((recipe) => (
           <div
             key={recipe.id}
             className='w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 p-2 sm:p-4'
