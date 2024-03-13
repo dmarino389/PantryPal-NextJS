@@ -37,19 +37,28 @@ export default function RecipeCard({name , image , link , time , missingIngredie
             return `${hours} hour${hours > 1 ? 's' : ''}${minutes > 0 ? ` and ${minutes} minute${minutes !== 1 ? 's' : ''}` : ''}`;
         }
     }
-  return (
-    <div onClick={toSlug} className=' h-[800px] w-[800px] grid grid-rows-2'>
-        <div className='row-span-1 h-full w-full relative'>
-           
-            <Image priority fill style={{cursor: 'pointer'}} alt={name} src={image} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"  />
+    return (
+        <div onClick={toSlug} className='cursor-pointer bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out mx-auto my-4 w-full sm:max-w-sm'>
+            <div className='relative w-full' style={{ paddingTop: '0' }}> {/* Maintain aspect ratio for images */}
+                <Image 
+                  priority 
+                  layout='responsive' 
+                  objectFit='cover' 
+                  alt={name} 
+                  src={image} 
+                  width={700}  // Provide width and height to maintain aspect ratio
+                  height={394}
+                />
+            </div>
+            <div className='flex flex-col p-4 space-y-2'>
+                <h2 className='text-lg font-bold text-left'>{name}</h2>
+                <div className='text-sm text-gray-700'>{handleMissingIngredients()}</div>
+                <div className='flex justify-start items-center'>
+                    <div className='rounded-full border border-gray-300 flex items-center justify-center p-2'>
+                        <span className='text-sm'>{handleTime()}</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div className='flex row-span-1 h-full flex-col'>
-            <h1 className=''>{name}</h1>
-            <a href={link}>Recipe.com</a>
-            <div>{handleMissingIngredients()}</div>
-            <div>{handleTime()}</div>
-            
-        </div>
-    </div>
-  )
+    );
 }
