@@ -36,7 +36,7 @@ export default function Page() {
 
   
     return (
-        <div className='h-screen w-full bg-gray-100'>
+      <div className='h-screen w-full bg-gray-100'>
           <div className="search-container mx-auto max-w-3xl p-4">
             <div className="search-box flex items-center border-2 rounded-md border-gray-400 mb-8 bg-white">
               <input

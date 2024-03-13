@@ -44,8 +44,9 @@ export default function Page() {
 
   return (
     <div className='h-screen w-full bg-gray-100'>
-      <div className="search-container mx-auto max-w-3xl p-4">
-        <div className="search-box flex items-center border-2 rounded-md border-gray-400 mb-8 bg-white">
+      <h1 className="text-4xl font-bold mb-4 text-center pt-10">Suggested Recipes</h1>
+      <div className="search-container mx-auto max-w-3xl p-5">
+        <div className="search-box flex items-center border-2 rounded-lg border-gray-500 pl-16 mb-8 bg-white">
           <input
             value={ingredient}
             onChange={(e) => setIngredient(e.target.value)}
@@ -53,10 +54,9 @@ export default function Page() {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 setIngredientsList(prevIngredients => [...prevIngredients, ingredient]);
-                
               }
             }}
-            className='flex-1 py-2 px-4 md:h-[75px] rounded-md border-none bg-transparent placeholder-gray-400 focus:outline-none'
+            className='flex-1 py-7 px-4 md:h-[75px] rounded-md border-none bg-transparent placeholder-gray-500 focus:outline-none'
             type='text'
             name='ingredient' 
             placeholder='Search for ingredients'
@@ -77,7 +77,6 @@ export default function Page() {
 
       <div className='flex flex-wrap m-4 sm:m-8 lg:m-12 xl:m-16'>
         {data.map((recipe) => (
-          
           <div
             key={recipe.title}
             className='w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 p-2 sm:p-4 hover:shadow-lg transition duration-300 rounded-md' // Add rounded-md class for rounded corners
@@ -89,4 +88,4 @@ export default function Page() {
       </div>
     </div>
   );
-}
+        }
