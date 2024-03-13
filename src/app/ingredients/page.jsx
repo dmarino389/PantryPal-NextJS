@@ -35,7 +35,7 @@ export default function Page() {
     .catch(error => {
       console.error('Error fetching data: ', error);
     });
-  }, [ingredientsList]); 
+  }, [ingredientsList, apiKey]); 
 
 
   const handleIngredientsListUpdate = (newList) => {

@@ -12,7 +12,7 @@ export default function IngredientCard({ ingredient, updateIngredientsList }) {
 
     useEffect(() => {
         updateIngredientsList(userIngredients);
-    }, [userIngredients]);
+    }, [userIngredients, updateIngredientsList]);
 
     useEffect(() => {
         fetch(`https://api.spoonacular.com/food/ingredients/search?query=${ingredient}`, {
@@ -29,7 +29,7 @@ export default function IngredientCard({ ingredient, updateIngredientsList }) {
         .catch(error => {
             console.error('Error fetching data: ', error);
         });
-    }, [ingredient]); 
+    }, [ingredient, apiKey]); 
 
     return (
         <div className="ingredient-card">
