@@ -32,7 +32,7 @@ export default function Page() {
                 console.error('Error fetching data: ', error);
             });
         
-    }, [recipe]);
+    }, [recipe, apiKey]);
 
   
     return (

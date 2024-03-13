@@ -42,7 +42,7 @@ export default function Page() {
                 console.error('Error fetching data: ', error);
             });
         }
-    }, [id]);
+    }, [id, apiKey]);
     const handleTime = () => {
         const time = recipeData.time
         const numTime = Number(time);

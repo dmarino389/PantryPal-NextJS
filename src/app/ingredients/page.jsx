@@ -38,7 +38,8 @@ export default function Page() {
     .catch(error => {
       console.error('Error fetching data: ', error);
     });
-  }, [ingredientsList]);
+
+  }, [ingredientsList, apiKey]);
 
   useEffect(() => {
     const filterByTime = (recipes) => {
@@ -57,6 +58,9 @@ export default function Page() {
         }
       });
     };
+
+  }, [ingredientsList, apiKey]); 
+
 
     setData(filterByTime(originalData));
   }, [selectedTime, originalData]);
