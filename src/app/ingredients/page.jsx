@@ -2,10 +2,11 @@
 import React, { useEffect, useState } from 'react';
 import IngredientCard from '../components/ingredientcard';
 import RecipeCard from '../components/recipecard';
+import {aisleDict} from '../components/aisleDict'
 
 export default function Page() {
   const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY;
-
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [recipesDetails, setRecipesDetails] = useState([]); // Stores ID and missedIngredientsCount
   const [recipeArray, setRecipeArray] = useState([]);
   const [ingredient, setIngredient] = useState('');
@@ -106,9 +107,28 @@ export default function Page() {
             </button>
           ))}
         </div>
-        {/* IngredientCard */}
-        <IngredientCard ingredient={ingredient} updateIngredientsList={handleIngredientsListUpdate} />
+        {/* IngredientCard
+        <IngredientCard ingredient={ingredient} updateIngredientsList={handleIngredientsListUpdate} /> */}
       </div>
+      {/* Drop Down Menus */}
+      {Object.keys(aisleDict).map((aisle) => (
+  <div key={aisle} className="mb-4">
+    <button
+      className="py-2 px-4 w-full text-left rounded-lg bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+      type="button"
+      onClick={() => setOpenDropdown(openDropdown === aisle ? null : aisle)}
+    >
+      {aisle}
+    </button>
+    {openDropdown === aisle && (
+      <div className="mt-2 space-y-2">
+        
+        <IngredientCard key={aisle} ingredientList={aisleDict[aisle]} updateIngredientsList={handleIngredientsListUpdate} />
+        
+      </div>
+    )}
+  </div>
+))}
       {/* RecipeCard Grid */}
       <div className='flex flex-wrap m-4 sm:m-8 lg:m-12 xl:m-16'>
         {recipeArray.map((recipe) => (
