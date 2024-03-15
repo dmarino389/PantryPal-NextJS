@@ -1,74 +1,118 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import IngredientCard from '../components/ingredientcard';
-import RecipeCard from '../components/recipecard';
+
 import {aisleDict} from '../components/aisleDict'
 
 export default function Page() {
   const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY;
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [recipesDetails, setRecipesDetails] = useState([]); // Stores ID and missedIngredientsCount
+  
   const [recipeArray, setRecipeArray] = useState([]);
+  const [pantryItems, setPantryItems] = useState([])
   const [ingredient, setIngredient] = useState('');
   const [ingredientsList, setIngredientsList] = useState([]);
   const [selectedTime, setSelectedTime] = useState(200);
+  ;
 
-  const ingredientsListToString = (ingredientsList) => {
-    return ingredientsList.join(', ');
-  };
-
-  useEffect(() => {
-    if (ingredientsList.length > 0) {
-      fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientsListToString(ingredientsList)}&apiKey=${apiKey}`)
-      .then(response => response.json())
-      .then(data => {
-        const tempRecipesDetails = data.map(item => ({
-          id: item.id,
-          missedIngredientsCount: item.missedIngredientCount
-        }));
-        setRecipesDetails(tempRecipesDetails);
-      })
-      .catch(error => {
-        console.error('Error fetching data: ', error);
-      });
+  function getUserToken() {      
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('usertoken') || '';
     }
-  }, [ingredientsList, apiKey]);
-
+    return ''
+  }
   useEffect(() => {
-    if (recipesDetails.length > 0) {
-      const ids = recipesDetails.map(detail => detail.id).join(',');
-      fetch(`https://api.spoonacular.com/recipes/informationBulk?ids=${ids}&apiKey=${apiKey}`)
-      .then(response => response.json())
-      .then(data => {
-        const tempRecipeArray = data.map(item => {
-          const details = recipesDetails.find(detail => detail.id === item.id) || {};
-          return {
-            id: item.id,
-            title: item.title,
-            link: item.sourceUrl,
-            image: item.image,
-            time: item.readyInMinutes,
-            missingIngredients: details.missedIngredientsCount
-          };
+    const fetchPantryItems = async () => {
+      const userToken = getUserToken();
+      if (!userToken) {
+        console.log("No user token found");
+        return;
+      }
+
+      try {
+        const response = await fetch('http://localhost:5000/get_user_pantry_items', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${userToken}`,
+            'Content-Type': 'application/json',
+          },
         });
-        setRecipeArray(tempRecipeArray);
-      })
-      .catch(error => {
-        console.error('Error fetching data: ', error);
-      });
-    }
-  }, [recipesDetails, apiKey]);
 
-  const handleIngredientsListUpdate = (newList) => {
-    setIngredientsList(newList);
-  };
+        if (!response.ok) {
+          throw new Error('Failed to fetch pantry items');
+        }
+
+        const data = await response.json();
+        setPantryItems(data);
+      } catch (error) {
+        console.error("Error fetching pantry items:", error.message);
+      }
+    };
+
+    fetchPantryItems();
+    
+  }, [])
+
+  useEffect(()=>{
+    if(userToken){
+      console.log(pantryItems)
+    }
+    
+  },[pantryItems, userToken])
+  
+  
+  const handleIngredientsListUpdate = async (ingredient) => {
+    let currentList = JSON.parse(sessionStorage.getItem('ingredientsList')) || []
+
+    const index = currentList.findIndex(item => item.name === ingredient.name);
+
+    if (index === -1) {
+      currentList.push(ingredient);
+    } else {
+      currentList.splice(index, 1); // Remove the ingredient if it's already in the list
+    }
+  
+    const userToken = getUserToken(); // Retrieve user token
+  
+    if (userToken) {
+      const response = await fetch('http://127.0.0.1:5000/handle_user_ingredient_list', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          usertoken: userToken, 
+          name: ingredient.name,
+          id: ingredient.id,
+        }),
+      });
+  
+      if (!response.ok) {
+        console.error('Failed to update ingredients in the database');
+        return;
+      }
+    } else {
+      sessionStorage.setItem('ingredientsList', JSON.stringify(currentList));
+      setIngredientsList(currentList);
+    }
+  }
+
+  const userToken = getUserToken();
+  if (!userToken) {
+      console.log("No user token found");
+      return;
+  }
+
+  
+
+  
 
   const handleTimeFilter = (time) => {
     setSelectedTime(time);
   };
 
   const filteredRecipes = selectedTime ? recipeArray.filter(recipe => recipe.time <= selectedTime) : recipeArray;
-
+  
 
 
   return (
@@ -128,25 +172,8 @@ export default function Page() {
       </div>
     )}
   </div>
-))}
-      {/* RecipeCard Grid */}
-      <div className='flex flex-wrap m-4 sm:m-8 lg:m-12 xl:m-16'>
-        {recipeArray.map((recipe) => (
-          <div
-            key={recipe.id}
-            className='w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 p-2 sm:p-4'
-          >
-            <RecipeCard
-              name={recipe.title}
-              image={recipe.image}
-              link={recipe.link}
-              time={recipe.time}
-              missingIngredients={recipe.missingIngredients}
-              id={recipe.id}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
+  ))}
+      
+  </div>
   );
 }

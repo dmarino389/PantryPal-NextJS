@@ -1,9 +1,11 @@
 'use client'
+import { useRouter } from 'next/navigation';
 import {useState} from 'react'
 
 export default function Page() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter()
 
 
   
@@ -37,18 +39,13 @@ export default function Page() {
         
 
         alert(`${data.name} logged in`);
+        router.push(`/`)
 
-        const token = localStorage.getItem('access_token')
-        if (!token) {
-          alert('Please log in first.');
-          return;
-        }
+        
       
         
-        router.push(`/${data.username}/to-do-list`);
-      }  else {
-        alert('user not logged in');
-      }
+        ;
+      }  
   }
   
   

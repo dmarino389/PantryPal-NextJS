@@ -6,38 +6,59 @@ import RecipeCard from '../components/recipecard'
 export default function Page() {
     const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY
     const [recipe, setRecipe] = useState([])
+    const [recipesDetails, setRecipesDetails] = useState([])
     const [recipeArray, setRecipeArray]= useState([])
 
+    const ingredientsListToString = (ingredientsList) => {
+      return ingredientsList.join(', ');
+    };
+  
     useEffect(() => {
-        
-            fetch(`https://api.spoonacular.com/recipes/complexSearch?query=${recipe}&addRecipeInformation=true&number=50&fillIngredients=true`, {
-                method: 'GET',
-                headers: {
-                    'x-api-key': apiKey 
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const recipes = data.results.map(result => ({
-                    id: result.id,
-                    title: result.title,
-                    link: result.sourceUrl,
-                    image: result.image,
-                    time: result.readyInMinutes,
-                    missingIngredients: result.missedIngredientCount
-                  }))
-                  setRecipeArray(recipes)               
-                })
-            .catch(error => {
-                console.error('Error fetching data: ', error);
-            });
-        
-    }, [recipe, apiKey]);
+      if (ingredientsList.length > 0) {
+        fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientsListToString(ingredientsList)}&apiKey=${apiKey}`)
+        .then(response => response.json())
+        .then(data => {
+          const tempRecipesDetails = data.map(item => ({
+            id: item.id,
+            missedIngredientsCount: item.missedIngredientCount
+          }));
+          setRecipesDetails(tempRecipesDetails);
+        })
+        .catch(error => {
+          console.error('Error fetching data: ', error);
+        });
+      }
+    }, [ingredientsList, apiKey]);
+  
+    useEffect(() => {
+      if (recipesDetails.length > 0) {
+        const ids = recipesDetails.map(detail => detail.id).join(',');
+        fetch(`https://api.spoonacular.com/recipes/informationBulk?ids=${ids}&apiKey=${apiKey}`)
+        .then(response => response.json())
+        .then(data => {
+          const tempRecipeArray = data.map(item => {
+            const details = recipesDetails.find(detail => detail.id === item.id) || {};
+            return {
+              id: item.id,
+              title: item.title,
+              link: item.sourceUrl,
+              image: item.image,
+              time: item.readyInMinutes,
+              missingIngredients: details.missedIngredientsCount
+            };
+          });
+          setRecipeArray(tempRecipeArray);
+        })
+        .catch(error => {
+          console.error('Error fetching data: ', error);
+        });
+      }
+    }, [recipesDetails, apiKey]);
 
   
     return (
       <div className='h-screen w-full bg-gray-100'>
-          <div className="search-container mx-auto max-w-3xl p-4">
+          {/* <div className="search-container mx-auto max-w-3xl p-4">
             <div className="search-box flex items-center border-2 rounded-md border-gray-400 mb-8 bg-white">
               <input
                 value={recipe}
@@ -49,7 +70,7 @@ export default function Page() {
                 required
               />
             </div>            
-          </div>
+          </div> */}
     
           <div className='flex flex-wrap m-4 sm:m-8 lg:m-12 xl:m-16'>
             {recipeArray.map((recipe) => (
