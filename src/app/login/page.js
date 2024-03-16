@@ -11,42 +11,36 @@ export default function Page() {
   
 
   const handleLogin = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    
-
-    
-      const response = await fetch('http://127.0.0.1:5000/login', {
+    const response = await fetch('http://127.0.0.1:5000/login', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            'email' : email.toLowerCase(),
-            'password' : password
+            'email': email.toLowerCase(),
+            'password': password,
         }),
-        credentials: 'include'
-      });
+    });
 
-      if (response.status === 200) {
-        const data = await response.json()
-        console.log(data)
-        
-        const userToken = data.usertoken
-        localStorage.setItem('usertoken', userToken)
-        localStorage.setItem('email', data.email)
+    if (response.status === 200) {
+        const data = await response.json();
+        console.log(data);
         
         
-
-        alert(`${data.name} logged in`);
-        router.push(`/`)
+        localStorage.setItem('accessToken', data.access_token); 
+        localStorage.setItem('usertoken', data.usertoken); 
+        localStorage.setItem('email', data.email); 
 
         
-      
+        alert(`Logged in successfully as ${data.email}`);
+        router.push(`/`);
+    } else {
         
-        ;
-      }  
-  }
+        alert('Login failed. Please check your credentials.');
+    }
+}
   
   
   

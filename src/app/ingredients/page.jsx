@@ -1,122 +1,126 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import IngredientCard from '../components/ingredientcard';
-
-import {aisleDict} from '../components/aisleDict'
+import { aisleDict } from '../components/aisleDict';
 
 export default function Page() {
   const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY;
   const [openDropdown, setOpenDropdown] = useState(null);
-  
   const [recipeArray, setRecipeArray] = useState([]);
-  const [pantryItems, setPantryItems] = useState([])
+  const [pantryItems, setPantryItems] = useState([]);
   const [ingredient, setIngredient] = useState('');
   const [ingredientsList, setIngredientsList] = useState([]);
   const [selectedTime, setSelectedTime] = useState(200);
-  ;
+  const [userToken, setUserToken] = useState('')
 
-  function getUserToken() {      
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('usertoken') || '';
-    }
-    return ''
-  }
-  useEffect(() => {
-    const fetchPantryItems = async () => {
-      const userToken = getUserToken();
-      if (!userToken) {
-        console.log("No user token found");
-        return;
-      }
 
-      try {
-        const response = await fetch('http://localhost:5000/get_user_pantry_items', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${userToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
+  const fetchPantryItems = useCallback(async () => {
+    if (!userToken) return;
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch pantry items');
-        }
-
-        const data = await response.json();
-        setPantryItems(data);
-      } catch (error) {
-        console.error("Error fetching pantry items:", error.message);
-      }
-    };
-
-    fetchPantryItems();
-    
-  }, [])
-
-  useEffect(()=>{
-    if(userToken){
-      console.log(pantryItems)
-    }
-    
-  },[pantryItems, userToken])
-  
-  
-  const handleIngredientsListUpdate = async (ingredient) => {
-    let currentList = JSON.parse(sessionStorage.getItem('ingredientsList')) || []
-
-    const index = currentList.findIndex(item => item.name === ingredient.name);
-
-    if (index === -1) {
-      currentList.push(ingredient);
-    } else {
-      currentList.splice(index, 1); // Remove the ingredient if it's already in the list
-    }
-  
-    const userToken = getUserToken(); // Retrieve user token
-  
-    if (userToken) {
-      const response = await fetch('http://127.0.0.1:5000/handle_user_ingredient_list', {
-        method: 'POST',
+    try {
+      const response = await fetch('http://localhost:5000/get_user_pantry_items', {
+        method: 'GET',
         headers: {
+          'Authorization': `Bearer ${userToken}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          usertoken: userToken, 
-          name: ingredient.name,
-          id: ingredient.id,
-        }),
       });
-  
+
       if (!response.ok) {
-        console.error('Failed to update ingredients in the database');
-        return;
+        throw new Error('Failed to fetch pantry items');
       }
-    } else {
-      sessionStorage.setItem('ingredientsList', JSON.stringify(currentList));
-      setIngredientsList(currentList);
+
+      const data = await response.json();
+      setPantryItems(data);
+      
+    } catch (error) {
+      console.error("Error fetching pantry items:", error.message);
+    }
+  }, [userToken]); 
+
+  
+  useEffect(() => {
+    const token = localStorage.getItem('usertoken') || '';
+    setUserToken(token);
+  }, []); 
+
+  useEffect(() => {
+    if (userToken) fetchPantryItems();
+  }, [userToken, fetchPantryItems]);
+
+  
+  useEffect(()=>{
+    console.log(pantryItems)
+  },[pantryItems])
+
+  const handleIngredientsListUpdate = async (ingredient) => {
+    let currentList = JSON.parse(sessionStorage.getItem('ingredientsList')) || [];
+
+ 
+  const index = currentList.findIndex(item => item.id === ingredient.id);
+
+  if (index === -1) {
+    
+    currentList.push(ingredient);
+  } else {
+    
+    currentList.splice(index, 1);
+  }
+  sessionStorage.setItem('ingredientsList', JSON.stringify(currentList));
+
+
+  setIngredientsList(currentList);
+  
+    if (userToken) {
+      try {
+        const response = await fetch('http://127.0.0.1:5000/handle_user_ingredient_list', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            usertoken: userToken,
+            name: ingredient.name,
+            id: ingredient.id,
+          }),
+        });
+  
+        if (response.ok) {
+          fetchPantryItems();
+        } else {
+          
+          console.error('Failed to update ingredients in the database');
+        }
+      } catch (error) {
+        
+        console.error('Error updating ingredients:', error);
+      }
+    } else {    
+      console.log("Updated ingredientsList:", currentList) 
     }
   }
 
-  const userToken = getUserToken();
-  if (!userToken) {
-      console.log("No user token found");
-      return;
-  }
-
-  
-
-  
-
+ 
   const handleTimeFilter = (time) => {
     setSelectedTime(time);
   };
+  const handleLogout = async () => {
+    localStorage.removeItem('accessToken'); 
+    localStorage.removeItem('usertoken');
+    localStorage.removeItem('email');
+
+    alert('You have been logged out successfully')
+  };
+  
 
   const filteredRecipes = selectedTime ? recipeArray.filter(recipe => recipe.time <= selectedTime) : recipeArray;
-  
+
 
 
   return (
     <div className='h-screen w-full'>
+    {userToken ? <button onClick={handleLogout}>logout</button>
+      : null}
       <h1 className="text-4xl font-bold mb-4 text-center pt-10">Suggested Recipes</h1>
       <div className="search-container mx-auto max-w-3xl p-5">
         <div className="search-box flex items-center border-2 rounded-lg border-gray-500 mb-8 bg-white">
