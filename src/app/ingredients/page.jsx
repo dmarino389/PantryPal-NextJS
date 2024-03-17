@@ -5,13 +5,30 @@ import { aisleDict } from '../components/aisleDict';
 
 export default function Page() {
   const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY;
-  const [openDropdown, setOpenDropdown] = useState(null);
-  const [recipeArray, setRecipeArray] = useState([]);
+  const [data , setData] = useState([])
+  const [openDropdown, setOpenDropdown] = useState(null);;
   const [pantryItems, setPantryItems] = useState([]);
   const [ingredient, setIngredient] = useState('');
-  const [ingredientsList, setIngredientsList] = useState([]);
-  const [selectedTime, setSelectedTime] = useState(200);
+  const [ingredientsList, setIngredientsList] = useState([]);;
   const [userToken, setUserToken] = useState('')
+  const [userPantryClicked, setUserPantryClicked] = useState(false)
+
+  useEffect(() => {
+    fetch(`https://api.spoonacular.com/food/ingredients/search?query=${ingredient}`, {
+        method: 'GET',
+        headers: {
+            'x-api-key': apiKey 
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const ingredientsArray = data.results.map(result => ({ id: `${result.id}`, name: result.name }))
+        setData(ingredientsArray || []);            
+    })
+    .catch(error => {
+        console.error('Error fetching data: ', error);
+    });
+}, [ingredient, apiKey]);
 
 
   const fetchPantryItems = useCallback(async () => {
@@ -101,9 +118,7 @@ export default function Page() {
   }
 
  
-  const handleTimeFilter = (time) => {
-    setSelectedTime(time);
-  };
+  
   const handleLogout = async () => {
     localStorage.removeItem('accessToken'); 
     localStorage.removeItem('usertoken');
@@ -113,14 +128,12 @@ export default function Page() {
   };
   
 
-  const filteredRecipes = selectedTime ? recipeArray.filter(recipe => recipe.time <= selectedTime) : recipeArray;
-
+  
 
 
   return (
     <div className='h-screen w-full'>
-    {userToken ? <button onClick={handleLogout}>logout</button>
-      : null}
+      {userToken && <button onClick={handleLogout}>Logout</button>}
       <h1 className="text-4xl font-bold mb-4 text-center pt-10">Suggested Recipes</h1>
       <div className="search-container mx-auto max-w-3xl p-5">
         <div className="search-box flex items-center border-2 rounded-lg border-gray-500 mb-8 bg-white">
@@ -130,54 +143,55 @@ export default function Page() {
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                setIngredientsList(prevIngredients => [...prevIngredients, ingredient]);
+                setIngredientsList(prev => [...prev, { id: Date.now().toString(), name: ingredient }]); // Example to convert string to object
                 setIngredient('');
               }
             }}
             className='flex-1 py-2 px-4 rounded-lg bg-transparent placeholder-gray-500 focus:outline-none'
             type='text'
-            name='ingredient' 
             placeholder='Search for ingredients'
-            required
           />
-        </div>
-        {/* Time Filter Buttons */}
-        <div className="time-filters mx-auto max-w-3xl p-5 flex justify-around mb-4">
-          {[9, 29, 59].map((time) => (
-            <button
-              key={time}
-              className={`py-2 px-4 rounded-lg ${selectedTime === time ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
-              // onClick={() => handleTimeFilter(time)}
-            >
-              {time === 9 && '< 10 Minutes'}
-              {time === 29 && '< 30 Minutes'}
-              {time === 59 && '< 1 hour'}
-            </button>
-          ))}
-        </div>
-        {/* IngredientCard
-        <IngredientCard ingredient={ingredient} updateIngredientsList={handleIngredientsListUpdate} /> */}
+        </div>      
       </div>
-      {/* Drop Down Menus */}
-      {Object.keys(aisleDict).map((aisle) => (
-  <div key={aisle} className="mb-4">
-    <button
-      className="py-2 px-4 w-full text-left rounded-lg bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-      type="button"
-      onClick={() => setOpenDropdown(openDropdown === aisle ? null : aisle)}
-    >
-      {aisle}
-    </button>
-    {openDropdown === aisle && (
-      <div className="mt-2 space-y-2">
-        
-        <IngredientCard key={aisle} ingredientList={aisleDict[aisle]} updateIngredientsList={handleIngredientsListUpdate} />
-        
+      <IngredientCard
+            ingredientList={data}
+            updateIngredientsList={handleIngredientsListUpdate}
+            checkCondition={(ingredient) => userToken ? pantryItems.some(item => item.id === ingredient.id)  : ingredientsList.some(item => item.id === ingredient.id)}
+          />
+      <div>
+      <div className='w-full flex justify-center items-center'>
+        <p onClick={() => setUserPantryClicked(false)}>Suggested Ingredients</p>
+        <p className='ml-6' onClick={() => { fetchPantryItems(); setUserPantryClicked(true); }}>Your Pantry</p>
       </div>
-    )}
-  </div>
-  ))}
-      
-  </div>
+        {userPantryClicked ? (
+          <IngredientCard
+            ingredientList={userToken ? pantryItems : ingredientsList}
+            updateIngredientsList={handleIngredientsListUpdate}
+            checkCondition={(ingredient) => userToken ? pantryItems.some(item => item.id === ingredient.id) : ingredientsList.some(item => item.id === ingredient.id)}
+          />
+        ) : (
+          Object.keys(aisleDict).map((aisle) => (
+            <div key={aisle} className="mb-4">
+              <button
+                className="py-2 px-4 w-full text-left rounded-lg bg-gray-200 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                onClick={() => setOpenDropdown(openDropdown === aisle ? null : aisle)}
+              >
+                {aisle}
+              </button>
+              {openDropdown === aisle && (
+                <div className="mt-2 space-y-2">
+                  <IngredientCard
+                    ingredientList={aisleDict[aisle]}
+                    updateIngredientsList={handleIngredientsListUpdate}
+                    checkCondition={(ingredient) => userToken ? pantryItems.some(item => item.id === ingredient.id) : ingredientsList.some(item => item.id === ingredient.id)}
+                  />
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+      <a href="/searchrecipe">search</a>
+    </div>
   );
 }

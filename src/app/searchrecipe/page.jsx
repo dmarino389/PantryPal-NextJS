@@ -1,13 +1,66 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import RecipeCard from '../components/recipecard'
 
 
 export default function Page() {
     const apiKey = process.env.NEXT_PUBLIC_SECRET_API_KEY
+    const [selectedTime, setSelectedTime] = useState('')
     const [recipe, setRecipe] = useState([])
+    const [pantryItems, setPantryItems] = useState([])
+    const [ingredientsList, setIngredientsList] = useState([]);
     const [recipesDetails, setRecipesDetails] = useState([])
     const [recipeArray, setRecipeArray]= useState([])
+    const [userToken, setUserToken] = useState('')
+
+    useEffect(() => {
+      const token = localStorage.getItem('usertoken') || '';
+      setUserToken(token);
+    }, [])
+
+    const fetchPantryItems = useCallback(async () => {
+      if (!userToken) return;
+  
+      try {
+        const response = await fetch('http://localhost:5000/get_user_pantry_items', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${userToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch pantry items');
+        }
+  
+        const data = await response.json();
+        setPantryItems(data);
+        
+      } catch (error) {
+        console.error("Error fetching pantry items:", error.message);
+      }
+    }, [userToken])
+
+    useEffect(() => {
+      if (userToken) fetchPantryItems();
+    }, [userToken, fetchPantryItems])
+
+    
+
+ 
+    useEffect(() => {
+      // Define currentList within the useEffect to ensure it's updated on each render
+      let currentList = JSON.parse(sessionStorage.getItem('ingredientsList')) || [];
+    
+      if (userToken && pantryItems.length > 0) {
+        // User is logged in and pantryItems have been fetched
+        setIngredientsList(pantryItems.map(item => item.name)); // Assuming pantryItems is an array of objects with a name property
+      } else {
+        // No userToken, use currentList from sessionStorage
+        setIngredientsList(currentList.map(item=>item.name));
+      }
+    }, [userToken, pantryItems])
 
     const ingredientsListToString = (ingredientsList) => {
       return ingredientsList.join(', ');
@@ -15,7 +68,7 @@ export default function Page() {
   
     useEffect(() => {
       if (ingredientsList.length > 0) {
-        fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientsListToString(ingredientsList)}&apiKey=${apiKey}`)
+        fetch(`https://api.spoonacular.com/recipes/findByIngredients?ingredients=${ingredientsListToString(ingredientsList)}&number=100&apiKey=${apiKey}`)
         .then(response => response.json())
         .then(data => {
           const tempRecipesDetails = data.map(item => ({
@@ -33,7 +86,7 @@ export default function Page() {
     useEffect(() => {
       if (recipesDetails.length > 0) {
         const ids = recipesDetails.map(detail => detail.id).join(',');
-        fetch(`https://api.spoonacular.com/recipes/informationBulk?ids=${ids}&apiKey=${apiKey}`)
+        fetch(`https://api.spoonacular.com/recipes/informationBulk?ids=${ids}&number=100&apiKey=${apiKey}`)
         .then(response => response.json())
         .then(data => {
           const tempRecipeArray = data.map(item => {
@@ -54,6 +107,13 @@ export default function Page() {
         });
       }
     }, [recipesDetails, apiKey]);
+    const handleTimeFilter = (time) => {
+      setSelectedTime(time);
+    };
+    const filteredRecipes = selectedTime ? recipeArray.filter(recipe => recipe.time <= selectedTime) : recipeArray;
+
+
+    
 
   
     return (
@@ -71,6 +131,19 @@ export default function Page() {
               />
             </div>            
           </div> */}
+          <div className="time-filters mx-auto max-w-3xl p-5 flex justify-around mb-4">
+          {[9, 29, 59].map((time) => (
+            <button
+              key={time}
+              className={`py-2 px-4 rounded-lg ${selectedTime === time ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+              // onClick={() => handleTimeFilter(time)}
+            >
+              {time === 9 && '< 10 Minutes'}
+              {time === 29 && '< 30 Minutes'}
+              {time === 59 && '< 1 hour'}
+            </button>
+          ))}
+        </div>
     
           <div className='flex flex-wrap m-4 sm:m-8 lg:m-12 xl:m-16'>
             {recipeArray.map((recipe) => (
