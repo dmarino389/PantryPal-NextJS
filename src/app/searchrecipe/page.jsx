@@ -50,14 +50,14 @@ export default function Page() {
 
  
     useEffect(() => {
-      // Define currentList within the useEffect to ensure it's updated on each render
+      
       let currentList = JSON.parse(sessionStorage.getItem('ingredientsList')) || [];
     
       if (userToken && pantryItems.length > 0) {
-        // User is logged in and pantryItems have been fetched
-        setIngredientsList(pantryItems.map(item => item.name)); // Assuming pantryItems is an array of objects with a name property
+       
+        setIngredientsList(pantryItems.map(item => item.name)); 
       } else {
-        // No userToken, use currentList from sessionStorage
+        
         setIngredientsList(currentList.map(item=>item.name));
       }
     }, [userToken, pantryItems])

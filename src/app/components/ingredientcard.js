@@ -11,7 +11,7 @@ export default function IngredientCard({ ingredientList , updateIngredientsList,
     return (
         <div className="ingredient-card p-4 rounded-lg flex flex-row flex-wrap gap-4">
       {ingredientList.map((ingredient) => {
-        // Determine if the ingredient's checkbox should be checked
+        
         const isChecked = checkCondition(ingredient);
 
         return (
